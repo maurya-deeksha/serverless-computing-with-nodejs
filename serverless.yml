@@ -1,4 +1,4 @@
-service: multitenant-app
+service: serverless-app
 frameworkVersion: '3'
 
 provider:

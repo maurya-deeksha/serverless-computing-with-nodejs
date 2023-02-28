@@ -118,8 +118,8 @@ const generateAccessToken = (tenant_email)=> {
     return jwt.sign(tenant_email, ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
 }
 
-app.listen(5000, () => {
-    console.log('Demo app is up and listening to port: 5000' );
-});
+// app.listen(5000, () => {
+//     console.log('Demo app is up and listening to port: 5000' );
+// });
 
-// module.exports = app;
+module.exports = app;
