@@ -21,7 +21,7 @@ const createStudio = async (req, res) => {
                 status: 'enable',
                 tenant_id: tenantEmail[0].tenant_id
             });
-            res.status(201).json({status: 'OK', message: 'Studio Created!!!'});
+            res.status(200).json({status: 'OK', message: 'Studio Created!!!'});
         } else {
             const studio = await knex(`studios`)
                 .where('tenant_id', tenantEmail[0].tenant_id)
@@ -37,7 +37,7 @@ const createStudio = async (req, res) => {
                 });
                 res.status(201).json({status: 'OK', message: 'Studio Created!!!'});
             } else {
-                res.send(`Studio Already Exists!!!`);
+                res.status(400).json({Error:`Studio Already Exists!!!`});
             }
         }
     } catch (error) {
@@ -51,7 +51,13 @@ const readStudioByStudioId = async (req, res, next) => {
     await knex(`studios`)
         .where('tenant_id', tenantEmail[0].tenant_id)
         .andWhere('studio_id', studio_id)
-        .then((studio) => (studio ? res.status(200).json({studio}) : res.status(404).json({message: 'not found'})))
+        .then((studio) =>{
+        if(studio.length !== 0) {
+            res.status(200).json({studio})
+        } else {
+            res.status(404).json({message: 'not found'})
+        }
+        })
         .catch((error) => res.status(500).json({error}));
 };
 
@@ -73,7 +79,11 @@ const updateStudio = async (req, res, next) => {
             studioAdmin_email,
             status
         }, '*');
-        res.status(200).json({updatedStudio});
+        if(updatedStudio.length !== 0){
+            res.status(200).json({status: 'updated', data: updatedStudio});
+        } else{
+            res.status(404).json({message: 'studio not found'});
+        }
     } catch (error) {
         res.status(500).json({error});
     }

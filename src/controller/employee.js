@@ -7,43 +7,49 @@ const createEmployee = async (req, res) => {
         const studioId = await knex(`studios`)
             .where('tenant_id', tenantEmail[0].tenant_id)
             .andWhere('studio_code', studio_code);
-        if (studioId[0].status === 'enable') {
-            await knex.schema.hasTable('employees').then(async (exists) => {
-                if (!exists) {
-                    await knex.schema.createTable(`employees`, (table) => {
-                        table.increments('employee_id').primary().unique();
-                        table.string('employee_name');
-                        table.string('employee_email').unique();
-                        table.string('status');
-                        table.string('studio_code');
-                        table.integer('studio_id').unsigned().index().references('studio_id').inTable(`studios`);
-                        table.integer('tenant_id').unsigned().index().references('tenant_id').inTable('tenants');
-                    });
-                    await knex(`employees`).insert({
-                        employee_name,
-                        employee_email,
-                        status: 'enable',
-                        studio_code,
-                        studio_id: studioId[0].studio_id,
-                        tenant_id: tenantEmail[0].tenant_id,
-                    });
-                    res.status(201).json({status: 'OK', message: 'Employee Created!!!'});
-                } else {
-                    await knex(`employees`).insert({
-                        employee_name,
-                        employee_email,
-                        status: 'enable',
-                        studio_code,
-                        studio_id: studioId[0].studio_id,
-                        tenant_id: tenantEmail[0].tenant_id,
-                    });
-                    res.status(201).json({status: 'OK', message: 'Employee Created!!!'});
-                }
-            });
+        if(studioId.length !== 0 ){
+            if (studioId[0].status === 'enable') {
+                await knex.schema.hasTable('employees').then(async (exists) => {
+                    if (!exists) {
+                        await knex.schema.createTable(`employees`, (table) => {
+                            table.increments('employee_id').primary().unique();
+                            table.string('employee_name');
+                            table.string('employee_email').unique();
+                            table.string('status');
+                            table.string('studio_code');
+                            table.integer('studio_id').unsigned().index().references('studio_id').inTable(`studios`);
+                            table.integer('tenant_id').unsigned().index().references('tenant_id').inTable('tenants');
+                        });
+                        await knex(`employees`).insert({
+                            employee_name,
+                            employee_email,
+                            status: 'enable',
+                            studio_code,
+                            studio_id: studioId[0].studio_id,
+                            tenant_id: tenantEmail[0].tenant_id,
+                        });
+                        res.status(200).json({status: 'OK', message: 'Employee Created!!!'});
+                    } else {
+                        await knex(`employees`).insert({
+                            employee_name,
+                            employee_email,
+                            status: 'enable',
+                            studio_code,
+                            studio_id: studioId[0].studio_id,
+                            tenant_id: tenantEmail[0].tenant_id,
+                        });
+                        res.status(200).json({status: 'OK', message: 'Employee Created!!!'});
+                    }
+                });
+            } else {
+                res.status(400).json({Error:'Sorry, could not create user for disabled studio'})
+            }
         } else {
-            res.status(403).send('Sorry, could not user studio for disabled studio')
+            res.status(404).json({Error: 'Studio Not Found'})
         }
+
     } catch (error) {
+        console.log(error)
         res.status(500).json({error});
     }
 };
@@ -54,7 +60,13 @@ const readEmployeeById = async (req, res, next) => {
     await knex(`employees`)
         .where('tenant_id', tenantEmail[0].tenant_id)
         .andWhere('employee_id', employee_id)
-        .then((employee) => (employee ? res.status(200).json({employee}) : res.status(404).json({message: 'not found'})))
+        .then((employee) => {
+            if(employee.length !== 0) {
+                res.status(200).json({employee})
+            } else {
+                res.status(404).json({message: 'not found'})
+            }
+        })
         .catch((error) => res.status(500).json({error}));
 };
 
@@ -86,7 +98,11 @@ const updateEmployee = async (req, res, next) => {
             .where('tenant_id', tenantEmail[0].tenant_id)
             .andWhere('employee_id', employee_id)
             .update({employee_name, employee_email, status, studio_code, studio_id: studioId[0].studio_id}, '*');
-        res.status(200).json({updatedUser});
+        if(updatedUser.length !== 0){
+            res.status(200).json({status: 'updated', data: updatedUser});
+        } else{
+            res.status(404).json({message: 'user not found'});
+        }
     } catch (error) {
         res.status(500).json({error});
     }

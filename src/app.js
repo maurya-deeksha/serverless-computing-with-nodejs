@@ -54,7 +54,7 @@ app.post('/', async( req, res)=>{
                     status: 'enable',
                 });
                 Logging.info('Tenant Created!!!')
-                res.status(201).json({status: 'OK', message: 'Tenant Created!!!', data: tenant});
+                res.status(200).json({status: 'OK', message: 'Tenant Created!!!'});
             } else {
                 const tenantExists = await knex('tenants').where('tenant_name', tenant_name);
                 if (tenantExists.length === 0) {
@@ -67,9 +67,9 @@ app.post('/', async( req, res)=>{
                         status: 'enable',
                     });
                     Logging.info('Tenant Created!!!')
-                    res.status(201).json({status: 'OK', message: 'Tenant Created!!!', data: tenant});
+                    res.status(200).json({status: 'OK', message: 'Tenant Created!!!'});
                 } else {
-                    res.send('Tenants Already Exists!');
+                    res.status(400).json({ message: 'Tenant Already Exists!!!'});
                 }
             }
         } catch (error) {
@@ -82,7 +82,7 @@ app.post('/login', async (req, res )=>{
         try {
             const { tenant_email, password } = req.body;
             const tenant = await knex('tenants').where('tenant_email', tenant_email);
-            if (tenant) {
+            if (tenant.length !==0) {
                 if(tenant[0].status === 'enable'){
                     if (tenant[0].password === password) {
                         const accessToken = generateAccessToken({ tenant_email: tenant_email });
@@ -94,7 +94,7 @@ app.post('/login', async (req, res )=>{
                     res.status(403).json({ Error: 'Tenant Deactivate' });
                 }
             } else {
-                res.status(404).json({ message: 'tenant not found' });
+                res.status(404).json({ Error: 'tenant not found' });
             }
         } catch (error) {
             res.status(500).json({ error });
