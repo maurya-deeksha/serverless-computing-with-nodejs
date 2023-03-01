@@ -91,13 +91,12 @@ const readAllTenant = async (req, res, next) => {
 const updateTenant = async (req, res, next) => {
     try {
         const tenant_id = req.params.tenant_id;
-        const {tenant_name, tenant_code, tenant_email, password, status} = req.body;
+        const {tenant_name, tenant_code, tenant_email, password} = req.body;
             const tenant = await knex('tenants').where('tenant_id', tenant_id).update({
                 tenant_name,
                 tenant_code,
                 tenant_email,
-                password,
-                status
+                password
             }, '*');
             if(tenant.length !== 0){
                 res.status(200).json({status: 'updated', data: tenant});
@@ -109,14 +108,31 @@ const updateTenant = async (req, res, next) => {
     }
 };
 
-// const disableTenant = async (req, res, next) => {
-//     try {
-//         const tenant_id = req.params.tenant_id;
-//         const tenant = await knex('tenants').where('tenant_id', tenant_id).update({status: 'disable'}, '*');
-//         tenant ? res.status(200).json({tenant, message: 'Disabled'}) : res.status(404).json({message: 'not found'});
-//     } catch (error) {
-//         res.status(500).json({error});
-//     }
-// };
+const disableTenant = async (req, res, next) => {
+    try {
+        const tenantEmail = await knex('tenants').where('tenant_email', req.token.tenant_email);
+        if (tenantEmail[0].tenant_role === 'admin') {
+            const tenant_id = req.params.tenant_id;
+            const tenant = await knex('tenants').where('tenant_id', tenant_id);
+            if(tenant.length !== 0){
+                if(tenant[0].status === 'enable') {
+                    const disableTenant = await knex('tenants').where('tenant_id', tenant_id)
+                        .update({status: 'disable'}, '*');
+                    res.status(200).json({disableTenant, message: 'Disabled'});
+                } else {
+                    const enableTenant = await knex('tenants').where('tenant_id', tenant_id)
+                        .update({status: 'enable'}, '*');
+                    res.status(200).json({enableTenant, message: 'Enabled'});
+                }
+            } else{
+                res.status(404).json({message: 'tenant not found'});
+            }
+        } else {
+            res.status(400).json({message: 'Only Admin can deactivate a tenant!'});
+        }
+    } catch (error) {
+        res.status(500).json({error});
+    }
+};
 
-module.exports = {createTenant, readTenantById, readAllTenant, updateTenant};
+module.exports = {createTenant, readTenantById, readAllTenant, updateTenant, disableTenant};

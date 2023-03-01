@@ -26,7 +26,7 @@ const Schemas = {
             tenant_code: Joi.string(),
             tenant_email: Joi.string().email(),
             password: Joi.string(),
-            status: Joi.string()
+            // status: Joi.string()
         }),
         login: Joi.object({
             tenant_email: Joi.string().email().required(),
