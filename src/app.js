@@ -86,7 +86,7 @@ app.post('/login', async (req, res )=>{
                 if(tenant[0].status === 'enable'){
                     if (tenant[0].password === password) {
                         const accessToken = generateAccessToken({ tenant_email: tenant_email });
-                        res.status(200).json({ accessToken: accessToken });
+                        res.status(200).json({ tenant_role: tenant[0].tenant_role, accessToken: accessToken });
                     } else {
                         res.status(403).json({ Error: 'Incorrect password' });
                     }

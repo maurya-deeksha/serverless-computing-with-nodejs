@@ -94,14 +94,19 @@ const updateEmployee = async (req, res, next) => {
         const studioId = await knex(`studios`)
             .where('tenant_id', tenantEmail[0].tenant_id)
             .andWhere('studio_code', studio_code);
-        const updatedUser = await knex(`employees`)
-            .where('tenant_id', tenantEmail[0].tenant_id)
-            .andWhere('employee_id', employee_id)
-            .update({employee_name, employee_email, status, studio_code, studio_id: studioId[0].studio_id}, '*');
-        if(updatedUser.length !== 0){
-            res.status(200).json({status: 'updated', data: updatedUser});
-        } else{
-            res.status(404).json({message: 'user not found'});
+        if(studioId.length !==0){
+            const updatedUser = await knex(`employees`)
+                .where('tenant_id', tenantEmail[0].tenant_id)
+                .andWhere('employee_id', employee_id)
+                .update({employee_name, employee_email, status, studio_code, studio_id: studioId[0].studio_id}, '*');
+            if(updatedUser.length !== 0){
+                res.status(200).json({status: 'updated', data: updatedUser});
+            } else{
+                res.status(404).json({message: 'user not found'});
+            }
+        }
+        else{
+            res.status(404).json({message: 'studio not found'});
         }
     } catch (error) {
         res.status(500).json({error});
