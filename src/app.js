@@ -9,6 +9,8 @@ const jwt = require("jsonwebtoken");
 const app = express();
 
 const ACCESS_TOKEN_SECRET = 'secretkey'
+const REFRESH_TOKEN_SECRET = 'secretkeyrefresh'
+let refreshTokens = []
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -86,7 +88,9 @@ app.post('/login', async (req, res )=>{
                 if(tenant[0].status === 'enable'){
                     if (tenant[0].password === password) {
                         const accessToken = generateAccessToken({ tenant_email: tenant_email });
-                        res.status(200).json({ tenant_role: tenant[0].tenant_role, accessToken: accessToken });
+                        const refreshToken = generateRefreshToken ({tenant_email: tenant_email})
+
+                        res.status(200).json({ tenant_role: tenant[0].tenant_role, accessToken: accessToken, refreshToken: refreshToken });
                     } else {
                         res.status(403).json({ Error: 'Incorrect password' });
                     }
@@ -99,6 +103,25 @@ app.post('/login', async (req, res )=>{
         } catch (error) {
             res.status(500).json({ error });
         };
+})
+
+app.post("/refreshToken", (req,res) => {
+    let tokens;
+    if (!refreshTokens.includes(req.body.token)) res.status(400).send("Refresh Token Invalid")
+    jwt.verify(req.body.token, REFRESH_TOKEN_SECRET, (err, token) => {
+        if (err) {
+            res.status(401).send("Token invalid");
+        } else {
+             tokens = token
+        }
+    });
+    refreshTokens = refreshTokens.filter( (c) => c != req.body.token)
+
+//remove the old refreshToken from the refreshTokens list
+    const accessToken = generateAccessToken ({tenant_email: tokens.tenant_email})
+    const refreshToken = generateRefreshToken ({tenant_email: tokens.tenant_email})
+//generate new accessToken and refreshTokens
+    res.json ({accessToken: accessToken, refreshToken: refreshToken})
 })
 
 /** Healthcheck */
@@ -115,7 +138,14 @@ app.use((req, res, next) => {
 });
 
 const generateAccessToken = (tenant_email)=> {
-    return jwt.sign(tenant_email, ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
+    return jwt.sign(tenant_email, ACCESS_TOKEN_SECRET, { expiresIn: '1m' });
+}
+
+function generateRefreshToken(tenant_email) {
+    const refreshToken =
+        jwt.sign(tenant_email, REFRESH_TOKEN_SECRET, {expiresIn: "2m"})
+    refreshTokens.push(refreshToken)
+    return refreshToken
 }
 
 // app.listen(5000, () => {
