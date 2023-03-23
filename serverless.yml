@@ -9,8 +9,8 @@ provider:
   timeout: 30
 
 functions:
-  hello:
-    handler: handler.hello
+  multiTenantApp:
+    handler: handler.multiTenantApp
     events:
       - http: ANY /{proxy+}
       - http: ANY /
