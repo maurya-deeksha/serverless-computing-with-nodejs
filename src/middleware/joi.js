@@ -50,13 +50,13 @@ const Schemas = {
         create: Joi.object({
             employee_name: Joi.string().required(),
             employee_email: Joi.string().required().email(),
-            studio_code: Joi.string().required(),
+            studio_name: Joi.string().required(),
         }),
         update: Joi.object({
             employee_name: Joi.string().required(),
             employee_email: Joi.string().required().email(),
             status: Joi.string(),
-            studio_code: Joi.string().required(),
+            studio_name: Joi.string().required(),
         })
     },
 };

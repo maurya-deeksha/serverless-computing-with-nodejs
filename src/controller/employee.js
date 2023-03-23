@@ -3,10 +3,10 @@ const knex = require('../dbConfig/dbConfig');
 const createEmployee = async (req, res) => {
     try {
         const tenantEmail = await knex('tenants').where('tenant_email', req.token.tenant_email);
-        const {employee_name, employee_email, studio_code} = req.body;
+        const {employee_name, employee_email, studio_name} = req.body;
         const studioId = await knex(`studios`)
             .where('tenant_id', tenantEmail[0].tenant_id)
-            .andWhere('studio_code', studio_code);
+            .andWhere('studio_name', studio_name);
         if(studioId.length !== 0 ){
             if (studioId[0].status === 'enable') {
                 await knex.schema.hasTable('employees').then(async (exists) => {
@@ -16,7 +16,7 @@ const createEmployee = async (req, res) => {
                             table.string('employee_name');
                             table.string('employee_email').unique();
                             table.string('status');
-                            table.string('studio_code');
+                            table.string('studio_name');
                             table.integer('studio_id').unsigned().index().references('studio_id').inTable(`studios`);
                             table.integer('tenant_id').unsigned().index().references('tenant_id').inTable('tenants');
                         });
@@ -24,7 +24,7 @@ const createEmployee = async (req, res) => {
                             employee_name,
                             employee_email,
                             status: 'enable',
-                            studio_code,
+                            studio_name,
                             studio_id: studioId[0].studio_id,
                             tenant_id: tenantEmail[0].tenant_id,
                         });
@@ -34,7 +34,7 @@ const createEmployee = async (req, res) => {
                             employee_name,
                             employee_email,
                             status: 'enable',
-                            studio_code,
+                            studio_name,
                             studio_id: studioId[0].studio_id,
                             tenant_id: tenantEmail[0].tenant_id,
                         });
@@ -79,10 +79,10 @@ const readAllEmployee = async (req, res, next) => {
 };
 const readUserByStudioId = async (req, res, next) => {
     const tenantEmail = await knex('tenants').where('tenant_email', req.token.tenant_email);
-    const studio_code = req.params.studio_code;
+    const studio_name = req.params.studio_name;
     await knex(`employees`)
         .where('tenant_id', tenantEmail[0].tenant_id)
-        .andWhere('studio_code', studio_code)
+        .andWhere('studio_name', studio_name)
         .then((users) => res.status(200).json({users}))
         .catch((error) => res.status(500).json({error}));
 };
@@ -90,15 +90,15 @@ const updateEmployee = async (req, res, next) => {
     try {
         const tenantEmail = await knex('tenants').where('tenant_email', req.token.tenant_email);
         const employee_id = req.params.employee_id;
-        const {employee_name, employee_email,status, studio_code} = req.body;
+        const {employee_name, employee_email,status, studio_name} = req.body;
         const studioId = await knex(`studios`)
             .where('tenant_id', tenantEmail[0].tenant_id)
-            .andWhere('studio_code', studio_code);
+            .andWhere('studio_name', studio_name);
         if(studioId.length !==0){
             const updatedUser = await knex(`employees`)
                 .where('tenant_id', tenantEmail[0].tenant_id)
                 .andWhere('employee_id', employee_id)
-                .update({employee_name, employee_email, status, studio_code, studio_id: studioId[0].studio_id}, '*');
+                .update({employee_name, employee_email, status, studio_name, studio_id: studioId[0].studio_id}, '*');
             if(updatedUser.length !== 0){
                 res.status(200).json({status: 'updated', data: updatedUser});
             } else{
