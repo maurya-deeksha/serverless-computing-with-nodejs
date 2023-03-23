@@ -138,18 +138,18 @@ app.use((req, res, next) => {
 });
 
 const generateAccessToken = (tenant_email)=> {
-    return jwt.sign(tenant_email, ACCESS_TOKEN_SECRET, { expiresIn: '1m' });
+    return jwt.sign(tenant_email, ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
 }
 
 function generateRefreshToken(tenant_email) {
     const refreshToken =
-        jwt.sign(tenant_email, REFRESH_TOKEN_SECRET, {expiresIn: "2m"})
+        jwt.sign(tenant_email, REFRESH_TOKEN_SECRET, {expiresIn: "20m"})
     refreshTokens.push(refreshToken)
     return refreshToken
 }
 
-// app.listen(5000, () => {
-//     console.log('Demo app is up and listening to port: 5000' );
-// });
+app.listen(5000, () => {
+    console.log('Demo app is up and listening to port: 5000' );
+});
 
-module.exports = app;
+// module.exports = app;
